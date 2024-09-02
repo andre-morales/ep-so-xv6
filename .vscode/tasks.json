@@ -1,0 +1,15 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Compilar e Executar QEMU",
+			"type": "shell",
+			"command": "CPUS=1 make qemu-gdb",
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			}
+			
+		}
+	]
+}

@@ -12,9 +12,6 @@
 			"cwd": "${workspaceFolder}",
 			"MIMode": "gdb",
 			"miDebuggerPath": "gdb",
-			"stopAtConnect": true,
-			"stopAtEntry": true,
-			/*"miDebuggerServerAddress": "localhost:26000",*/
 			"setupCommands": [
 				{
 					"description": "Enable pretty-printing for gdb",
@@ -28,7 +25,5 @@
 				}
 			]
 		}
-
-
 	]
 }

@@ -1,6 +1,22 @@
-Começo do novo README
--------
+# EP1 de Sistemas Operacionais: xv6
 
+O primeiro exercício programa dessa disciplina consiste em modificar o sistema operacional didático **xv6** para implementar uma nova operação de sistema (_syscall_).
+A chamada de sistema a ser implementada possui a assinatura:
+```c
+int getreadcount();
+```
+e deverá reportar ao programa em _user-mode_ quantas vezes a chamada ```read()``` foi feita.
+
+Além da implementação da chamada, deverá ser mantido um "diário de bordo" com todos as ideias e processos realizados no código durante a implementação da nova funcionalidade.
+
+## :hammer: Ferramentas
+* **WSL - Windows Subsystem for Linux:** Para desenvolver num ambiente Linux e utilizar toda a _toolchain_ do GNU dentro do Windows.
+* **QEMU:** Emulador de x86 utilizado para depurar o xv6 sem preciar de uma máquina física para testar o código.
+* **VSCode:** Editor gráfico de código customizável. Utilizado em conjunto com o gdb para depurar o xv6 visualmente.
+* **gdb:** Depurador GNU padrão do Linux. Usado para depurar tanto o lado do kernel quanto o lado do usuário no xv6.
+
+:scroll: README do xv6
+----
 xv6 is a re-implementation of Dennis Ritchie's and Ken Thompson's Unix
 Version 6 (v6).  xv6 loosely follows the structure and style of v6,
 but is implemented for a modern x86-based multiprocessor using ANSI C.
