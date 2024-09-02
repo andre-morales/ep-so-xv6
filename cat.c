@@ -24,6 +24,10 @@ cat(int fd)
 int
 main(int argc, char *argv[])
 {
+  int n = getreadcount();
+  printf(1, "this is a number: %d\n", n);
+  exit();
+
   int fd, i;
 
   if(argc <= 1){

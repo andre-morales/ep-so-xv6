@@ -53,7 +53,7 @@ user.h|Protótipos das funções principais do ambiente de usuário. Inclui tant
 usys.S|Implementação em Assembly das funções syscalls declaradas em user.h. Note que a implementação não processa, organiza ou verifica nenhum parâmetro. Essas responsabilidades ficam do lado do kernel.
 ulib.c|Implementação de algumas funcões da biblioteca C. Algumas operam apenas em memória e outras realizam chamadas de sistema.
 
-Agora, é possível entender todo o roteiro do processo de chamada de uma syscall e como o controle da CPU passa de um código para outro. Os passos principais (e que teremos que alterar em algum momento) são os seguintes:
+:sparkles: Agora, é possível entender todo o roteiro do processo de chamada de uma syscall e como o controle da CPU passa de um código para outro. Os passos principais (e que teremos que alterar em algum momento) são os seguintes:
 1. O programa de usuário chama alguma função declarada em _user.h_, ex. ```getpid()```.
 2. A implementação de ```getpid()``` está em _usys.S_, a função apenas coloca o número da syscall pedida (números declarados em _syscall.h_) no registrador EAX e realiza o interrupt 64.
 3. Através do gate declarado na tabela de vetores e inicializado pelo Kernel no boot, o controle é transferido para o handler de traps no Kernel.
@@ -62,3 +62,44 @@ Agora, é possível entender todo o roteiro do processo de chamada de uma syscal
 6. O controle retorna do kernel através do gate de traps e volta para o ambiente de usuário com o id numérico do processo.
 
 A chamada de sistema getpid() é simples pois não recebe qualquer parâmetro nem realiza operações muito complexas. Para outras syscalls, grande parte do código implementado consiste em processar os parâmetros que estão na pilha.
+
+- :coffee: Momento do café
+
+---
+
+Estamos prontos para implementar a chamada do sistema.
+### Lado do Kernel
+Vamos começar atribuindo um novo número para a chamada na tabela global de chamadas declarada em _syscall.h_, definirei a nova syscall com essa linha:
+```c
+#define SYS_getreadcount 22
+```
+Vamos agora criar um stub para o handler da nova syscall e adicioná-lo na tabela de _syscall.c_.
+Nesse arquivo, criei o seguinte protótipo: 
+```c
+extern int sys_getreadcount();
+```
+Como essa nova chamada lida com informações do processo, irei implementá-la em _sysproc.c_. Temporariamente, para testar a nova syscall, vou fazê-la retornar um valor simbólico com a seguinte implementação:
+```c
+int sys_getreadcount() {
+  return 1234567;
+}
+```
+O lado do Kernel está pronto, precisamos agora adicionar as chamadas do lado do usuário.
+### Lado do Usuário
+Primeiro, adicionarei mais uma linha em _usys.S_ que define uma função que ativa o interrupt da syscall.
+```
+SYSCALL(getreadcount)
+```
+Agora, em _user.h_, vamos definir o protótipo da nova chamada de sistema. Adicionei o seguinte protótipo:
+```c
+int getreadcount(void);
+```
+Para testar essas implementações, fiz uma modificação no programa **cat.c**, para testar a impressão do número teste 1234567.
+```c
+int n = getreadcount();
+printf(1, "this is a number: %d\n", n);
+```
+
+:checkered_flag: O teste funcionou! A chamada do sistema funciona sem crashes, agora, precisamos adicionar o contador na chamada de sistema ```read()```, e retornar o valor desse contador na nossa implementação.
+
+---
