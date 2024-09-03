@@ -121,3 +121,21 @@ Precisamos de um programa de testes para as chamadas. Podemos utilizar o _test_1
 
 :checkered_flag: O valor 10 é retornado da chamada do sistema corretamente.
 
+Agora, precisamos adicionar o contador na chamada de sistema ```read()```, e retornar o valor desse contador na nossa implementação.
+- A implementação está na linha 70 com esse corpo:
+- Implementarei o contador antes da validação dos argumentos. Ou seja, qualquer chamada para read() incrementará esse contador. Posso mudar esse comportamento depois se for necessário.
+```c
+int sys_read(void) {
+  struct file *f;
+  int n;
+  char *p;
+
+  read_counter++;
+
+  if(argfd(0, 0, &f) < 0 || argint(2, &n) < 0 || argptr(1, &p, n) < 0)
+    return -1;
+
+  return fileread(f, p, n);
+}
+```
+🏁 O contador funciona! A mensagem esperada é exibida pelo teste 1.

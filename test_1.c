@@ -14,7 +14,7 @@ int main(int argc, char *argv[]) {
     (void) read(4, buf, 1);
   }
   int x4 = getreadcount();
-  printf(1, "TEST %d", x1);
+  printf(1, "INITIAL VALUE %d\n", x1);
   printf(1, "XV6_TEST_OUTPUT %d %d %d\n", x2-x1, x3-x2, x4-x3);
   // saida esperada:
   // XV6_TEST_OUTPUT 0 1 1000
