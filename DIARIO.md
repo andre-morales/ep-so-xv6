@@ -121,6 +121,8 @@ Precisamos de um programa de testes para as chamadas. Podemos utilizar o _test_1
 
 :checkered_flag: O valor 10 é retornado da chamada do sistema corretamente.
 
+---
+
 Agora, precisamos adicionar o contador na chamada de sistema ```read()```, e retornar o valor desse contador na nossa implementação.
 - A implementação está na linha 70 com esse corpo:
 - Implementarei o contador antes da validação dos argumentos. Ou seja, qualquer chamada para read() incrementará esse contador. Posso mudar esse comportamento depois se for necessário.
@@ -139,3 +141,53 @@ int sys_read(void) {
 }
 ```
 🏁 O contador funciona! A mensagem esperada é exibida pelo teste 1.
+
+---
+
+O próximo passo é adicionar o teste 2 e garantir que ele funcione. O teste 2 usa concorrência com as chamadas.
+* O teste 2 cria dois processos e invoca as chamadas de read() e getreadcount() intercaladamente. 
+* Ambos processos acessarão o código do kernel simultaneamente.
+* Dito isso, precisaremos de um jeito de sincronizar os acessos ao contador para evitar condições de corrida.
+
+Apesar da condição de corrida teóricamente existir, não consegui reproduzí-la. Testei com vários números diferentes de CPUs e o número correto é exibido toda vez. 
+* É interessante ainda sim garantir que a chamada nunca terá problemas caso uma corrida ocorra.
+
+Vamos encontrar um jeito de simular uma situação de corrida.
+* Podemos ler a variável, esperar alguns instantes através de um spinlock, incrementá-la, e só então guardá-la.
+* Para garantir que o compilador não troque a ordem dessas instruções e quebre a nossa simulação, tornamos a variável volátil através do modificador 'volatile'.
+
+As implementações abaixo causam certamente uma condição de corrida.
+```c
+static volatile int read_counter = 0;
+
+// Aguarda um número específico de ciclos de CPU sem fazer nada.
+static void spin_wait(int cycles) {
+  for (int i = 0; i < cycles; i++) {
+    // Garante que esse assembly não será removido pelo otimizador.
+    asm("nop");
+  }
+}
+
+int sys_read(void) {
+  struct file *f;
+  int n;
+  char *p;
+
+  volatile int current_value = read_counter;
+  spin_wait(10000);
+  read_counter = current_value + 1;
+
+  if(argfd(0, 0, &f) < 0 || argint(2, &n) < 0 || argptr(1, &p, n) < 0)
+    return -1;
+
+  return fileread(f, p, n);
+}
+```
+
+A situação de corrida ocorre toda vez com esse código, trabalharemos em cima dele por enquanto.
+
+:coffee: Momento da pausa.
+
+---
+
+Descobriremos uma forma de usar locks para evitar a corrida nessa simulação. Se a corrida deixar de ocorrer nessa simulação extrema, certamente deixará de ocorrer no caso real.

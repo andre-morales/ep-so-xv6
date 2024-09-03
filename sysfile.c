@@ -16,7 +16,7 @@
 #include "file.h"
 #include "fcntl.h"
 
-static int read_counter = 10;
+static volatile int read_counter = 0;
 
 // Fetch the nth word-sized system call argument as a file descriptor
 // and return both the descriptor and the corresponding struct file.
@@ -68,6 +68,14 @@ sys_dup(void)
   return fd;
 }
 
+// Aguarda um número específico de ciclos de CPU sem fazer nada.
+static void spin_wait(int cycles) {
+  for (int i = 0; i < cycles; i++) {
+    // Garante que esse assembly não será removido pelo otimizador.
+    asm("nop");
+  }
+}
+
 int
 sys_read(void)
 {
@@ -75,7 +83,9 @@ sys_read(void)
   int n;
   char *p;
 
-  read_counter++;
+  volatile int current_value = read_counter;
+  spin_wait(10000);
+  read_counter = current_value + 1;
 
   if(argfd(0, 0, &f) < 0 || argint(2, &n) < 0 || argptr(1, &p, n) < 0)
     return -1;
