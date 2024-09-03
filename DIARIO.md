@@ -191,3 +191,54 @@ A situação de corrida ocorre toda vez com esse código, trabalharemos em cima 
 ---
 
 Descobriremos uma forma de usar locks para evitar a corrida nessa simulação. Se a corrida deixar de ocorrer nessa simulação extrema, certamente deixará de ocorrer no caso real.
+* Encontrei um lock utilizado em _sysproc.h_ chamado de _tickslock_. Aparentemente utilizado para manter um contador de ticks de interrupções de tempo que já ocorreram desde quando o sistema começou. Esse lock é travado, entre vários lugares, na chamada ```sys_uptime()``` para obter o valor do contador de forma segura.
+```c
+// return how many clock tick interrupts have occurred since start.
+int sys_uptime(void) {
+  uint xticks;
+
+  acquire(&tickslock);
+  xticks = ticks;
+  release(&tickslock);
+  return xticks;
+}
+```
+:sparkles: Para obter e travar o lock, utilizamos as funções acquire() e release(), ambas aceitam uma referência de um lock. Precisamos encontrar aonde esse lock é criado e como é inicializado...
+
+:sparkles: O lock é declarado e inicializado em _trap.c_. Nesse arquivo, toda vez que uma trap por tempo é ativada, o contador é incrementado. O lock é utilizado aqui para garantir que o incremento não cause condições de corrida com outros usos de leitura dessa variável.
+
+O lock é inicializado aqui:
+```c
+void tvinit(void) {
+  int i;
+
+  for(i = 0; i < 256; i++)
+    SETGATE(idt[i], 0, SEG_KCODE<<3, vectors[i], 0);
+  SETGATE(idt[T_SYSCALL], 1, SEG_KCODE<<3, vectors[T_SYSCALL], DPL_USER);
+
+  initlock(&tickslock, "time");
+}
+```
+e declarado algumas linhas acima com:
+```c
+struct spinlock tickslock;
+```
+
+Um spinlock é um tipo de lock que não libera a CPU, (diferente de um mutex). Ele consegue ser travado e liberado com pouquíssimas instruções, mas desperdiça CPU se o lock ficar travado por muito tempo.
+Como vamos utilizar o lock apenas para cercar uma variável numérica, o uso do spinlock aqui não é nenhum problema.
+
+Através dessas descobertas, concluo que podemos utilizar o lock com essas 3 funções principais: ```initlock(), acquire(), release()```.
+* Essas funções são declaradas em _defs.h_ e implementadas em _spinlock.c_.
+---
+
+Agora que já temos uma API de spinlocks bem utilizável, vamos tentar usá-la para segurar nosso contador global.
+O primeiro passo é criar um lock para o nosso contador, vou criá-lo do lado do contador, assim:
+```c
+static volatile int read_counter = 0;
+struct spinlock read_counter_lock;
+```
+* Precisamos de algum lugar para inicializar esse lock... Notavelmente, ele precisa ser inicializado antes da primeira chamada possível de read().
+* Precisamos encontrar então: Quem é o primeiro a chamar read()?
+* E depois disso, aonde podemos colocar a inicialização do lock de forma que fique conciso com o resto da inicialização do kernel?
+
+:coffee: Pausa do café.

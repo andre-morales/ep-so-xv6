@@ -17,6 +17,7 @@
 #include "fcntl.h"
 
 static volatile int read_counter = 0;
+struct spinlock read_counter_lock;
 
 // Fetch the nth word-sized system call argument as a file descriptor
 // and return both the descriptor and the corresponding struct file.
