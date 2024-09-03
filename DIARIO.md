@@ -107,3 +107,17 @@ Precisamos agora criar um contador global para o valor. Esse contador deve ser u
 - Tudo ficaria mais fácil se a chamada de sistema que incrementa o contador e a chamada que lê o contador ficassem no mesmo arquivo.
 - Dito isso, é uma boa ideia mover a nossa chamada ```sys_getreadcount()``` de _sysproc.h_ para _sysread.c_.
 - Movi a chamda de sistema para o outro arquivo e ela continua funcionando perfeitamente.
+
+O contador não precisa ser uma variável visível externamente, ela pode ficar resguardada apenas nesse arquivo como uma variável estática. A variável pode ser declarada assim:
+```
+static int read_counter = 10;
+```
+* Declarei o valor inicial como 10 para testar se o kernel realiza a inicialização apropriada das variáveis estáticas.
+
+Precisamos de um programa de testes para as chamadas. Podemos utilizar o _test_1.c_ disponibilizado no enunciado do EP1. Esse programa teste realiza as duas chamadas de sistema e compara os valores para descobrir se estão sendo atualizados apropriadamente.
+* Instalei no repositório o programa test_1.c.
+* Adicionei o teste no Makefile como um programa de usuário, dele deve ser executado pela linha de comando como ```> test_1```.
+* Modifiquei o programa para não só exibir as diferenças das contagens mas para exibir o valor inicial do contador.
+
+:checkered_flag: O valor 10 é retornado da chamada do sistema corretamente.
+
