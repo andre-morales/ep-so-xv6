@@ -3,37 +3,37 @@
 
 |Símbolo|Significado|
 |:--|:---|
-|:checkered_flag:|Conquista, Milestone
-|:exclamation:| Problema|
-:sparkles:| Momento Eureka
-:coffee:| Pausa
+|🏁|Conquista, Milestone
+|❗| Problema|
+|✨| Momento Eureka
+|☕| Pausa
 
-## :blue_square: 28/08:
+## 📅 28/08:
 - Clonei o repositório do xv6 e regredi o repositório de volta para a versão do commit rev11 pedida no EP.
 - Instalei uma máquina virtual com Lubuntu para testar a execução do SO. Os pacotes necessários também foram instalados.
 
-## :blue_square: 30/08:
+## 📅 30/08:
 - Criei um caminho de compartilhamento de arquivos entre a máquina e o host Windows.
-- :exclamation: O xv6 consegue ser compilado e executado perfeitamente na máquina virtual, mas não quando armazenado na pasta de compartilhamento. Precisamos de outra alternativa...
-- :exclamation: A depuração remota do GDB funciona com o QEMU, mas a depuração do VSCode não funciona com o QEMU.
+- ❗ O xv6 consegue ser compilado e executado perfeitamente na máquina virtual, mas não quando armazenado na pasta de compartilhamento. Precisamos de outra alternativa...
+- ❗ A depuração remota do GDB funciona com o QEMU, mas a depuração do VSCode não funciona com o QEMU.
 - Ou seja, precisamos achar outra maneira de compilar e de depurar o xv6 dentro do Window.
 
-## :blue_square: 31/08:
+## 📅 31/08:
 - Instalei o WSL2 para executar um cliente leve com Ubuntu e depurar o xv6 diretamente no Windows.
-- :exclamation: Por alguma razão, a compilação no WSL2 gera um executável não bootável, apesar de compilar tudo. Mas a compilação na máquina virtual com Lubuntu funciona?? Existe alguma diferença entre as duas máquinas...
+- ❗ Por alguma razão, a compilação no WSL2 gera um executável não bootável, apesar de compilar tudo. Mas a compilação na máquina virtual com Lubuntu funciona?? Existe alguma diferença entre as duas máquinas...
 
-## :blue_square: 01/08:
-- :sparkles: A diferença aparentemente era a versão do Binutils! Não só a versão do GCC importa como a versão do Binutils também. O WSL vem por padrão com o Ubuntu 22.04 LTS, e o Binutils 2.38. A máquina do Lubuntu executa a versão 24.0.4 LTS, com o Binutils 2.42. Após atualizar o WSL2 para a versão mais nova do Ubuntu e o Binutils mais recente, a compilação e execução funcionam no WSL2!
+## 📅 01/08:
+- ✨ A diferença aparentemente era a versão do Binutils! Não só a versão do GCC importa como a versão do Binutils também. O WSL vem por padrão com o Ubuntu 22.04 LTS, e o Binutils 2.38. A máquina do Lubuntu executa a versão 24.0.4 LTS, com o Binutils 2.42. Após atualizar o WSL2 para a versão mais nova do Ubuntu e o Binutils mais recente, a compilação e execução funcionam no WSL2!
 - Agora precisamos encontrar como depurar o xv6. O gdb do WSL2 já vem funcional e consegue interagir apropriadamente com o stub do GDB no QEMU, mas não quero depurar na mão, preciso depurar no VSCode.
 - Mesmo configurando o VSCode para conectar com o stub remoto em :26000, o QEMU crasha assim que a conexão é feita, suspeito que seja uma arquitetura binária incompatível entre o GDB instalado no Windows e o stub do xv6.
 - Encontrei uma extensão do VS que permite executá-lo dentro do WSL2, e executar o GDB instalado dentro do WSL2. Isso elimina a incompatibilidade arquitetural. Dito isso, o QEMU ainda crasha quando me conecto através do depurador do VS.
-- :coffee: Pausa para o café.
+- ☕ Pausa para o café.
 
-- :sparkles: O QEMU crashava pois, ao iniciar o gdb na pasta do xv6, o xv6 executa um script .gdbinit. Esse script, entre outras coisas, **JÁ** especifica o comando 'target remote :26000'. Ao tentar especificar o comando denovo, o gdb termina o processo anterior. Ou seja, o VSCode iniciava o gdb na pasta, o .gdbinit iniciava uma conexão com o stub em :26000, e depois o VS tentava se conectar mais uma vez a :26000, terminando o QEMU. A solução foi apenas reconfigurar launch.json de forma que o VS apenas inicie o gdb na pasta do xv6, sem nenhuma configuração adicional.
+- ✨ O QEMU crashava pois, ao iniciar o gdb na pasta do xv6, o xv6 executa um script .gdbinit. Esse script, entre outras coisas, **JÁ** especifica o comando 'target remote :26000'. Ao tentar especificar o comando denovo, o gdb termina o processo anterior. Ou seja, o VSCode iniciava o gdb na pasta, o .gdbinit iniciava uma conexão com o stub em :26000, e depois o VS tentava se conectar mais uma vez a :26000, terminando o QEMU. A solução foi apenas reconfigurar launch.json de forma que o VS apenas inicie o gdb na pasta do xv6, sem nenhuma configuração adicional.
 - A depuração finalmente funciona, mas resta ainda testar a funcionalidade dos breakpoints, além de configurar o ambiente de desenvolvimento, para não ter que compilar ou rodar nada diretamente no terminal.
-- :checkered_flag: Os breakpoints do kernel e dos programas de usuário funcionam apropriadamente. Estamos prontos para começar.
+- 🏁 Os breakpoints do kernel e dos programas de usuário funcionam apropriadamente. Estamos prontos para começar.
 
-## :blue_square: 02/08:
+## 📅 02/08:
 - Precisamos agora descobrir quais arquivos estão do lado do kernel e quais estão do lado do usuário, além de descobrir quais a participação de cada arquivo relevante na chamada do sistema.
 
 Antes de tudo, o cabeçalho _**syscall.h**_ é usado tanto do lado do Kernel como do lado do usuário, e possui definições de constantes para cada tipo de syscall utilizada no sistema. Essa tabela de constantes é depois consultada para obter o número da chamada desejada pelo seu nome.
@@ -53,7 +53,7 @@ user.h|Protótipos das funções principais do ambiente de usuário. Inclui tant
 usys.S|Implementação em Assembly das funções syscalls declaradas em user.h. Note que a implementação não processa, organiza ou verifica nenhum parâmetro. Essas responsabilidades ficam do lado do kernel.
 ulib.c|Implementação de algumas funcões da biblioteca C. Algumas operam apenas em memória e outras realizam chamadas de sistema.
 
-:sparkles: Agora, é possível entender todo o roteiro do processo de chamada de uma syscall e como o controle da CPU passa de um código para outro. Os passos principais (e que teremos que alterar em algum momento) são os seguintes:
+✨ Agora, é possível entender todo o roteiro do processo de chamada de uma syscall e como o controle da CPU passa de um código para outro. Os passos principais (e que teremos que alterar em algum momento) são os seguintes:
 1. O programa de usuário chama alguma função declarada em _user.h_, ex. ```getpid()```.
 2. A implementação de ```getpid()``` está em _usys.S_, a função apenas coloca o número da syscall pedida (números declarados em _syscall.h_) no registrador EAX e realiza o interrupt 64.
 3. Através do gate declarado na tabela de vetores e inicializado pelo Kernel no boot, o controle é transferido para o handler de traps no Kernel.
@@ -63,7 +63,7 @@ ulib.c|Implementação de algumas funcões da biblioteca C. Algumas operam apena
 
 A chamada de sistema getpid() é simples pois não recebe qualquer parâmetro nem realiza operações muito complexas. Para outras syscalls, grande parte do código implementado consiste em processar os parâmetros que estão na pilha.
 
-- :coffee: Momento do café
+- ☕ Momento do café
 
 ---
 
@@ -100,12 +100,12 @@ int n = getreadcount();
 printf(1, "this is a number: %d\n", n);
 ```
 
-:checkered_flag: O teste funcionou! A chamada do sistema funciona sem crashes e imprime o número correto.
+🏁 O teste funcionou! A chamada do sistema funciona sem crashes e imprime o número correto.
 
-## :blue_square: 03/09:
+## 📅 03/09:
 Precisamos agora criar um contador global para o valor. Esse contador deve ser uma variável global no sistema e possivelmente uma variável volátil a depender se o Kernel é sincronizado entre mais de uma CPU ou não.
 - Tudo ficaria mais fácil se a chamada de sistema que incrementa o contador e a chamada que lê o contador ficassem no mesmo arquivo.
-- Dito isso, é uma boa ideia mover a nossa chamada ```sys_getreadcount()``` de _sysproc.h_ para _sysread.c_.
+- Dito isso, é uma boa ideia mover a nossa chamada ```sys_getreadcount()``` de _sysproc.h_ para _sysfile.c_.
 - Movi a chamda de sistema para o outro arquivo e ela continua funcionando perfeitamente.
 
 O contador não precisa ser uma variável visível externamente, ela pode ficar resguardada apenas nesse arquivo como uma variável estática. A variável pode ser declarada assim:
@@ -119,7 +119,7 @@ Precisamos de um programa de testes para as chamadas. Podemos utilizar o _test_1
 * Adicionei o teste no Makefile como um programa de usuário, dele deve ser executado pela linha de comando como ```> test_1```.
 * Modifiquei o programa para não só exibir as diferenças das contagens mas para exibir o valor inicial do contador.
 
-:checkered_flag: O valor 10 é retornado da chamada do sistema corretamente.
+🏁 O valor 10 é retornado da chamada do sistema corretamente.
 
 ---
 
@@ -186,7 +186,7 @@ int sys_read(void) {
 
 A situação de corrida ocorre toda vez com esse código, trabalharemos em cima dele por enquanto.
 
-:coffee: Momento da pausa.
+☕ Momento da pausa.
 
 ---
 
@@ -203,9 +203,9 @@ int sys_uptime(void) {
   return xticks;
 }
 ```
-:sparkles: Para obter e travar o lock, utilizamos as funções acquire() e release(), ambas aceitam uma referência de um lock. Precisamos encontrar aonde esse lock é criado e como é inicializado...
+✨ Para obter e travar o lock, utilizamos as funções acquire() e release(), ambas aceitam uma referência de um lock. Precisamos encontrar aonde esse lock é criado e como é inicializado...
 
-:sparkles: O lock é declarado e inicializado em _trap.c_. Nesse arquivo, toda vez que uma trap por tempo é ativada, o contador é incrementado. O lock é utilizado aqui para garantir que o incremento não cause condições de corrida com outros usos de leitura dessa variável.
+✨ O lock é declarado e inicializado em _trap.c_. Nesse arquivo, toda vez que uma trap por tempo é ativada, o contador é incrementado. O lock é utilizado aqui para garantir que o incremento não cause condições de corrida com outros usos de leitura dessa variável.
 
 O lock é inicializado aqui:
 ```c
@@ -241,9 +241,9 @@ struct spinlock read_counter_lock;
 * Precisamos encontrar então: Quem é o primeiro a chamar read()?
 * E depois disso, aonde podemos colocar a inicialização do lock de forma que fique conciso com o resto da inicialização do kernel?
 
-:coffee: Pausa do café.
+☕ Pausa do café.
 
-O contador só será utilizado pelos processos quando houver chamadas de sistema, então o contador deve ser inicializado antes do primeiro processo. Como não há nenhuma função de inicialização em _sysfile.c_, vou criar uma e chamá-la no main() do kernel.
+O contador só será utilizado pelos processos quando houver chamadas de sistema, então o contador deve ser inicializado antes do primeiro processo. Como não há nenhuma função de inicialização em _sysfile.c_, vou criar uma e chamá-la no main() do kernel antes da chamada do primeiro processo.
 ```c
 void filecountersinit() {
   initlock(&read_counter_lock, "read-count-lock");
@@ -251,7 +251,9 @@ void filecountersinit() {
 
 int main(void) {
   ...
-  filecountersinit(); // initialize counter in sysfile.c
+  kinit2(P2V(4*1024*1024), P2V(PHYSTOP)); // must come after startothers()
+  filecountersinit(); // <-- initialize counter in sysfile.c
+  userinit();      // first user process
   ...
 }
 ```
@@ -277,6 +279,13 @@ int sys_read(void) {
 ```
 Agora, testamos se a nossa solução funcionou. Se os locks foram suficientes para sincronizar esse caso, certamente serão suficientes para sincronizar o caso regular sem os waits absurdos.
 
-:checkered_flag: Os valores certos são retornados toda vez. Mesmo com múltiplas CPUs e aumentando o tempo de teste.
+🏁 Os valores certos são retornados toda vez. Mesmo com múltiplas CPUs e aumentando o tempo de teste.
 
 ---
+
+Nosso último passo agora é tirar os spinwaits e limpar o código.
+* Como esperado, os valores continuam sincronizados corretamente.
+
+🏁🏁🏁🏁🏁🏁🏁🏁🏁🏁🏁
+
+Em princípio, a implementação da chamada de sistema foi um sucesso. Mais testes serão feitos no futuro para garantir que a chamada continue com o comportamento correto. Se necessário, o diário será atualizado de acordo.

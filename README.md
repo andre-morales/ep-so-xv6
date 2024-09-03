@@ -15,8 +15,7 @@ Além da implementação da chamada, deverá ser mantido um "diário de bordo" c
 * **VSCode:** Editor gráfico de código customizável. Utilizado em conjunto com o gdb para depurar o xv6 visualmente.
 * **gdb:** Depurador GNU padrão do Linux. Usado para depurar tanto o lado do kernel quanto o lado do usuário no xv6.
 
-:scroll: README do xv6
-----
+## :scroll: README do xv6
 xv6 is a re-implementation of Dennis Ritchie's and Ken Thompson's Unix
 Version 6 (v6).  xv6 loosely follows the structure and style of v6,
 but is implemented for a modern x86-based multiprocessor using ANSI C.

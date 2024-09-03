@@ -16,8 +16,8 @@
 #include "file.h"
 #include "fcntl.h"
 
-static volatile int read_counter = 0;
-struct spinlock read_counter_lock;
+static int read_counter = 0;
+static struct spinlock read_counter_lock;
 
 void filecountersinit() {
   initlock(&read_counter_lock, "read-count-lock");
@@ -73,14 +73,6 @@ sys_dup(void)
   return fd;
 }
 
-// Aguarda um número específico de ciclos de CPU sem fazer nada.
-static void spin_wait(int cycles) {
-  for (int i = 0; i < cycles; i++) {
-    // Garante que esse assembly não será removido pelo otimizador.
-    asm("nop");
-  }
-}
-
 int
 sys_read(void)
 {
@@ -89,9 +81,7 @@ sys_read(void)
   char *p;
 
   acquire(&read_counter_lock);
-  volatile int current_value = read_counter;
-  spin_wait(10000);
-  read_counter = current_value + 1;
+  read_counter++;
   release(&read_counter_lock);
 
   if(argfd(0, 0, &f) < 0 || argint(2, &n) < 0 || argptr(1, &p, n) < 0)
