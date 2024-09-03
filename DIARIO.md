@@ -242,3 +242,41 @@ struct spinlock read_counter_lock;
 * E depois disso, aonde podemos colocar a inicialização do lock de forma que fique conciso com o resto da inicialização do kernel?
 
 :coffee: Pausa do café.
+
+O contador só será utilizado pelos processos quando houver chamadas de sistema, então o contador deve ser inicializado antes do primeiro processo. Como não há nenhuma função de inicialização em _sysfile.c_, vou criar uma e chamá-la no main() do kernel.
+```c
+void filecountersinit() {
+  initlock(&read_counter_lock, "read-count-lock");
+}
+
+int main(void) {
+  ...
+  filecountersinit(); // initialize counter in sysfile.c
+  ...
+}
+```
+Além dessa inicialização, precisamos adquirir e liberar o lock tanto nas escritas quanto nas leituras, precisamos modificar o sys_read() e o sys_getreadcount(). Dessa forma:
+
+```c
+int sys_getreadcount() {
+  acquire(&read_counter_lock);
+  int val = read_counter;
+  release(&read_counter_lock);
+  return val;
+}
+
+int sys_read(void) {
+  ...
+  acquire(&read_counter_lock);
+  volatile int current_value = read_counter;
+  spin_wait(10000);
+  read_counter = current_value + 1;
+  release(&read_counter_lock);
+  ...
+}
+```
+Agora, testamos se a nossa solução funcionou. Se os locks foram suficientes para sincronizar esse caso, certamente serão suficientes para sincronizar o caso regular sem os waits absurdos.
+
+:checkered_flag: Os valores certos são retornados toda vez. Mesmo com múltiplas CPUs e aumentando o tempo de teste.
+
+---

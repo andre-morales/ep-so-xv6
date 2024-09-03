@@ -1,5 +1,9 @@
 {
 	"files.associations": {
-		"x86.h": "c"
+		"x86.h": "c",
+		"file.h": "c",
+		"defs.h": "c",
+		"spinlock.h": "c",
+		"sleeplock.h": "c"
 	}
 }

@@ -19,6 +19,10 @@
 static volatile int read_counter = 0;
 struct spinlock read_counter_lock;
 
+void filecountersinit() {
+  initlock(&read_counter_lock, "read-count-lock");
+}
+
 // Fetch the nth word-sized system call argument as a file descriptor
 // and return both the descriptor and the corresponding struct file.
 static int
@@ -84,9 +88,11 @@ sys_read(void)
   int n;
   char *p;
 
+  acquire(&read_counter_lock);
   volatile int current_value = read_counter;
   spin_wait(10000);
   read_counter = current_value + 1;
+  release(&read_counter_lock);
 
   if(argfd(0, 0, &f) < 0 || argint(2, &n) < 0 || argptr(1, &p, n) < 0)
     return -1;
@@ -461,5 +467,8 @@ sys_pipe(void)
 }
 
 int sys_getreadcount() {
-  return read_counter;
+  acquire(&read_counter_lock);
+  int val = read_counter;
+  release(&read_counter_lock);
+  return val;
 }
