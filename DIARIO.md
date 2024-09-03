@@ -1,5 +1,5 @@
 # Diário de Bordo
-### Legendas
+## Legendas
 
 |Símbolo|Significado|
 |:--|:---|
@@ -8,21 +8,21 @@
 :sparkles:| Momento Eureka
 :coffee:| Pausa
 
-### :blue_square: 28/08:
+## :blue_square: 28/08:
 - Clonei o repositório do xv6 e regredi o repositório de volta para a versão do commit rev11 pedida no EP.
 - Instalei uma máquina virtual com Lubuntu para testar a execução do SO. Os pacotes necessários também foram instalados.
 
-### :blue_square: 30/08:
+## :blue_square: 30/08:
 - Criei um caminho de compartilhamento de arquivos entre a máquina e o host Windows.
 - :exclamation: O xv6 consegue ser compilado e executado perfeitamente na máquina virtual, mas não quando armazenado na pasta de compartilhamento. Precisamos de outra alternativa...
 - :exclamation: A depuração remota do GDB funciona com o QEMU, mas a depuração do VSCode não funciona com o QEMU.
 - Ou seja, precisamos achar outra maneira de compilar e de depurar o xv6 dentro do Window.
 
-### :blue_square: 31/08:
+## :blue_square: 31/08:
 - Instalei o WSL2 para executar um cliente leve com Ubuntu e depurar o xv6 diretamente no Windows.
 - :exclamation: Por alguma razão, a compilação no WSL2 gera um executável não bootável, apesar de compilar tudo. Mas a compilação na máquina virtual com Lubuntu funciona?? Existe alguma diferença entre as duas máquinas...
 
-### :blue_square: 01/08:
+## :blue_square: 01/08:
 - :sparkles: A diferença aparentemente era a versão do Binutils! Não só a versão do GCC importa como a versão do Binutils também. O WSL vem por padrão com o Ubuntu 22.04 LTS, e o Binutils 2.38. A máquina do Lubuntu executa a versão 24.0.4 LTS, com o Binutils 2.42. Após atualizar o WSL2 para a versão mais nova do Ubuntu e o Binutils mais recente, a compilação e execução funcionam no WSL2!
 - Agora precisamos encontrar como depurar o xv6. O gdb do WSL2 já vem funcional e consegue interagir apropriadamente com o stub do GDB no QEMU, mas não quero depurar na mão, preciso depurar no VSCode.
 - Mesmo configurando o VSCode para conectar com o stub remoto em :26000, o QEMU crasha assim que a conexão é feita, suspeito que seja uma arquitetura binária incompatível entre o GDB instalado no Windows e o stub do xv6.
@@ -33,7 +33,7 @@
 - A depuração finalmente funciona, mas resta ainda testar a funcionalidade dos breakpoints, além de configurar o ambiente de desenvolvimento, para não ter que compilar ou rodar nada diretamente no terminal.
 - :checkered_flag: Os breakpoints do kernel e dos programas de usuário funcionam apropriadamente. Estamos prontos para começar.
 
-### :blue_square: 02/08:
+## :blue_square: 02/08:
 - Precisamos agora descobrir quais arquivos estão do lado do kernel e quais estão do lado do usuário, além de descobrir quais a participação de cada arquivo relevante na chamada do sistema.
 
 Antes de tudo, o cabeçalho _**syscall.h**_ é usado tanto do lado do Kernel como do lado do usuário, e possui definições de constantes para cada tipo de syscall utilizada no sistema. Essa tabela de constantes é depois consultada para obter o número da chamada desejada pelo seu nome.
@@ -100,6 +100,10 @@ int n = getreadcount();
 printf(1, "this is a number: %d\n", n);
 ```
 
-:checkered_flag: O teste funcionou! A chamada do sistema funciona sem crashes, agora, precisamos adicionar o contador na chamada de sistema ```read()```, e retornar o valor desse contador na nossa implementação.
+:checkered_flag: O teste funcionou! A chamada do sistema funciona sem crashes e imprime o número correto.
 
----
+## :blue_square: 03/09:
+Precisamos agora criar um contador global para o valor. Esse contador deve ser uma variável global no sistema e possivelmente uma variável volátil a depender se o Kernel é sincronizado entre mais de uma CPU ou não.
+- Tudo ficaria mais fácil se a chamada de sistema que incrementa o contador e a chamada que lê o contador ficassem no mesmo arquivo.
+- Dito isso, é uma boa ideia mover a nossa chamada ```sys_getreadcount()``` de _sysproc.h_ para _sysread.c_.
+- Movi a chamda de sistema para o outro arquivo e ela continua funcionando perfeitamente.

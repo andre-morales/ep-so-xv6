@@ -89,7 +89,3 @@ sys_uptime(void)
   release(&tickslock);
   return xticks;
 }
-
-int sys_getreadcount() {
-  return 1234567;
-}
