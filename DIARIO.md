@@ -289,3 +289,15 @@ Nosso último passo agora é tirar os spinwaits e limpar o código.
 🏁🏁🏁🏁🏁🏁🏁🏁🏁🏁🏁
 
 Em princípio, a implementação da chamada de sistema foi um sucesso. Mais testes serão feitos no futuro para garantir que a chamada continue com o comportamento correto. Se necessário, o diário será atualizado de acordo.
+
+## 📅 02/10:
+Investigando o caso da sincronização, houveram colegas que tiveram sim uma condição de corrida no Teste 2.
+Alguns utilizaram máquinas virtuais, outros utilizaram WSL2, e outros utilizaram uma distro Linux própria.
+
+Teorizo que essa diferença é causada por diferenças das plataformas. Notavelmente, a atomicidade ou não da leitura e do incremento do contador. 
+
+Se as duas operações realmente forem executadas como atômicas, nunca haverá uma colisão entre o incremento e a leitura, e o lock que implementamos se mostra redundante.
+
+Se essas operações não forem atômicas, como se viu em algumas máquinas, o lock é absolutamente necessário.
+
+Dito isso, precisamos sempre pensar na portabilidade da solução do sistema operacional, então devemos sim manter o lock implementado, mesmo que ele se mostre redundante em alguns casos, pois vale mais um resultado mais lento porém correto do que um resultado rápido e completamente errado.
